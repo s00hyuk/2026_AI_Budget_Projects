@@ -1,117 +1,76 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 재정사업 대시보드</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        #sankey_basic text { font-size: 12px; font-family: 'Pretendard', sans-serif; }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <div class="max-w-6xl mx-auto p-6">
-        <header class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i data-lucide="layout-dashboard" class="mr-2 text-indigo-600"></i> AI 재정사업 모니터링
-            </h1>
-            <div class="flex gap-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center w-40">
-                    <i data-lucide="database" class="mx-auto mb-1 text-blue-500"></i>
-                    <p class="text-xs text-gray-500 uppercase">총 사업 수</p>
-                    <p id="total-projects" class="text-xl font-bold text-gray-800">계산중...</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center w-48">
-                    <i data-lucide="coins" class="mx-auto mb-1 text-yellow-500"></i>
-                    <p class="text-xs text-gray-500 uppercase">2026 예산(백만)</p>
-                    <p id="total-budget" class="text-xl font-bold text-gray-800">계산중...</p>
-                </div>
-            </div>
-        </header>
+// 기존의 fetch 부분을 아래와 같이 수정하세요.
+async function initDashboard() {
+    try {
+        const response = await fetch('./AI_재정사업_표준화_533.json');
+        if (!response.ok) throw new Error("JSON 파일을 찾을 수 없습니다.");
 
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-            <h2 class="text-lg font-semibold mb-4 flex items-center">
-                <i data-lucide="git-merge" class="mr-2 text-purple-500"></i> 부처별-분야별 예산 흐름 (Sankey)
-            </h2>
-            <div id="sankey_basic" class="w-full h-[600px] flex items-center justify-center border-t border-gray-50 pt-4">
-                <div class="text-gray-400">데이터를 불러오는 중입니다...</div>
-            </div>
-        </div>
-    </div>
+        // 1. 텍스트로 먼저 읽어옵니다.
+        let textData = await response.text();
 
-    <script>
-        // 아이콘 실행
-        lucide.createIcons();
+        // 2. 중요: JSON 내의 NaN을 0으로 강제 치환합니다.
+        // ": NaN" 형태나 ", NaN" 형태를 찾아 ": 0"으로 바꿉니다.
+        textData = textData.replace(/:\s?NaN/g, ': 0');
 
-        // 구글 차트 로드
-        google.charts.load('current', {'packages':['sankey']});
+        // 3. 치환된 텍스트를 JSON 객체로 변환합니다.
+        const data = JSON.parse(textData);
+        const projects = data.projects;
 
-        // 데이터 로드 및 처리
-        async function initDashboard() {
-            try {
-                // 파일 경로 확인: 반드시 JSON 파일이 index.html과 같은 폴더에 있어야 합니다.
-                const response = await fetch('./AI_재정사업_표준화_533.json');
-                if (!response.ok) throw new Error("JSON 파일을 찾을 수 없습니다 (404).");
-                
-                const data = await response.json();
-                const projects = data.projects;
-
-                // 1. 상단 카드 업데이트
-                let totalSum = 0;
-                projects.forEach(p => {
-                    const b2026 = p.예산.find(b => b.연도 === 2026 && b.단계_원문.includes("본예산"));
-                    if (b2026) totalSum += b2026.금액_백만원;
-                });
-
-                document.getElementById('total-projects').innerText = projects.length + " 개";
-                document.getElementById('total-budget').innerText = Math.round(totalSum).toLocaleString();
-
-                // 2. 생키 차트용 데이터 가공 (중복 합산 처리)
-                const flowMap = new Map();
-                projects.forEach(p => {
-                    const b2026 = p.예산.find(b => b.연도 === 2026 && b.단계_원문.includes("본예산"));
-                    if (b2026 && b2026.금액_백만원 > 0) {
-                        const from = p.분류.소관;
-                        const to = p.분류.분야.명;
-                        const key = `${from}→${to}`;
-                        flowMap.set(key, (flowMap.get(key) || 0) + b2026.금액_백만원);
-                    }
-                });
-
-                const flowData = Array.from(flowMap.entries()).map(([key, val]) => {
-                    const [from, to] = key.split('→');
-                    return [from, to, val];
-                });
-
-                // 3. 차트 그리기
-                google.charts.setOnLoadCallback(() => {
-                    const dataTable = new google.visualization.DataTable();
-                    dataTable.addColumn('string', 'From');
-                    dataTable.addColumn('string', 'To');
-                    dataTable.addColumn('number', 'Weight');
-                    dataTable.addRows(flowData);
-
-                    const options = {
-                        sankey: {
-                            node: { label: { fontSize: 12 }, interactivity: true, width: 15 },
-                            link: { colorMode: 'gradient' }
-                        }
-                    };
-
-                    const chart = new google.visualization.Sankey(document.getElementById('sankey_basic'));
-                    chart.draw(dataTable, options);
-                });
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('sankey_basic').innerHTML = 
-                    `<div class="text-red-500 font-bold text-center">에러 발생: ${error.message}<br><span class="text-xs font-normal">파일 이름이 'AI_재정사업_표준화_533.json'인지 확인하세요.</span></div>`;
+        // --- 이후 로직은 동일하게 진행 ---
+        let totalSum = 0;
+        projects.forEach(p => {
+            // 예산 데이터가 배열인지 확인 후 계산
+            if (p.예산 && Array.isArray(p.예산)) {
+                const b2026 = p.예산.find(b => b.연도 === 2026 && b.단계_원문.includes("본예산"));
+                if (b2026) totalSum += b2026.금액_백만원;
             }
+        });
+
+        document.getElementById('total-projects').innerText = projects.length + " 개";
+        document.getElementById('total-budget').innerText = Math.round(totalSum).toLocaleString();
+
+        const flowMap = new Map();
+        projects.forEach(p => {
+            if (p.예산 && Array.isArray(p.예산)) {
+                const b2026 = p.예산.find(b => b.연도 === 2026 && b.단계_원문.includes("본예산"));
+                if (b2026 && b2026.금액_백만원 > 0) {
+                    const from = p.분류.소관 || "미분류";
+                    const to = p.분류.분야.명 || "미분류";
+                    const key = `${from}→${to}`;
+                    flowMap.set(key, (flowMap.get(key) || 0) + b2026.금액_백만원);
+                }
+            }
+        });
+
+        const flowData = Array.from(flowMap.entries()).map(([key, val]) => {
+            const [from, to] = key.split('→');
+            return [from, to, val];
+        });
+
+        if (flowData.length === 0) {
+            throw new Error("시각화할 수 있는 예산 데이터가 없습니다.");
         }
 
-        initDashboard();
-    </script>
-</body>
-</html>
+        google.charts.setOnLoadCallback(() => {
+            const dataTable = new google.visualization.DataTable();
+            dataTable.addColumn('string', 'From');
+            dataTable.addColumn('string', 'To');
+            dataTable.addColumn('number', 'Weight');
+            dataTable.addRows(flowData);
+
+            const options = {
+                sankey: {
+                    node: { label: { fontSize: 12 }, interactivity: true, width: 15 },
+                    link: { colorMode: 'gradient' }
+                }
+            };
+
+            const chart = new google.visualization.Sankey(document.getElementById('sankey_basic'));
+            chart.draw(dataTable, options);
+        });
+
+    } catch (error) {
+        console.error(error);
+        document.getElementById('sankey_basic').innerHTML = 
+            `<div class="text-red-500 font-bold text-center">에러 발생: ${error.message}</div>`;
+    }
+}
