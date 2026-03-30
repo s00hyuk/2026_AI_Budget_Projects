@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 재정사업 분석 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto p-6">
+        <header class="mb-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-800">AI 재정사업 모니터링</h1>
+            <div class="flex gap-4">
+                <div class="flex items-center p-4 bg-white shadow rounded-lg hover:scale-105 transition-transform cursor-pointer">
+                    <i data-lucide="database" class="text-blue-500 mr-3"></i>
+                    <div><p class="text-sm text-gray-500">총 사업 수</p><p class="text-xl font-bold" id="total-projects">533</p></div>
+                </div>
+                <div class="flex items-center p-4 bg-white shadow rounded-lg hover:scale-105 transition-transform cursor-pointer">
+                    <i data-lucide="trending-up" class="text-green-500 mr-3"></i>
+                    <div><p class="text-sm text-gray-500">2026 예산 총액</p><p class="text-xl font-bold" id="total-budget">계산중...</p></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="bg-white p-6 shadow rounded-xl">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i data-lucide="git-branch" class="mr-2 text-indigo-500"></i> 예산 흐름도 (Sankey Chart)
+            </h2>
+            <div id="sankey-chart" class="w-full h-[600px]"></div>
+        </div>
+    </div>
+
+    <script>
+        // Lucide 아이콘 초기화
+        lucide.createIcons();
+
+        // 데이터 로드 및 시각화 로직
+        fetch('AI_재정사업_표준화_533.json')
+            .then(res => res.json())
+            .then(data => {
+                const projects = data.projects;
+                
+                // 1. 통계 업데이트
+                const total2026 = projects.reduce((acc, p) => {
+                    const budget2026 = p.예산.find(b => b.연도 === 2026 && b.단계_원문.includes("본예산"));
+                    return acc + (budget2026 ? budget2026.금액_백만원 : 0);
+                }, 0);
+                document.getElementById('total-budget').innerText = `${Math.round(total2026 / 100).toLocaleString()} 억 원`;
+
+                // 2. 생키 데이터 구조화 (소관 -> 분야 -> 사업)
+                const nodes = [];
+                const links = [];
+                // ... (생키 데이터 전처리 로직)
+                
+                renderSankey(nodes, links);
+            });
+
+        function renderSankey(nodes, links) {
+            // D3.js Sankey 그리기 구현
+            // 각 노드 클릭 시 해당 사업의 상세 정보(내역사업, 예산 추이) 팝업 연동
+        }
+    </script>
+</body>
+</html>
