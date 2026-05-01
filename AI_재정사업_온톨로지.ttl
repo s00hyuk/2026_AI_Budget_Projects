@@ -1,0 +1,84 @@
+@prefix ex: <http://example.org/budget/> .
+
+ex:project_0 a ex:BudgetProject .
+
+ex:project_1 a ex:BudgetProject .
+
+ex:project_10 a ex:BudgetProject .
+
+ex:project_11 a ex:BudgetProject .
+
+ex:project_12 a ex:BudgetProject .
+
+ex:project_13 a ex:BudgetProject .
+
+ex:project_14 a ex:BudgetProject .
+
+ex:project_15 a ex:BudgetProject .
+
+ex:project_16 a ex:BudgetProject .
+
+ex:project_17 a ex:BudgetProject .
+
+ex:project_18 a ex:BudgetProject .
+
+ex:project_19 a ex:BudgetProject .
+
+ex:project_2 a ex:BudgetProject .
+
+ex:project_20 a ex:BudgetProject .
+
+ex:project_21 a ex:BudgetProject .
+
+ex:project_22 a ex:BudgetProject .
+
+ex:project_23 a ex:BudgetProject .
+
+ex:project_24 a ex:BudgetProject .
+
+ex:project_25 a ex:BudgetProject .
+
+ex:project_26 a ex:BudgetProject .
+
+ex:project_27 a ex:BudgetProject .
+
+ex:project_28 a ex:BudgetProject .
+
+ex:project_29 a ex:BudgetProject .
+
+ex:project_3 a ex:BudgetProject .
+
+ex:project_30 a ex:BudgetProject .
+
+ex:project_31 a ex:BudgetProject .
+
+ex:project_32 a ex:BudgetProject .
+
+ex:project_33 a ex:BudgetProject .
+
+ex:project_34 a ex:BudgetProject .
+
+ex:project_35 a ex:BudgetProject .
+
+ex:project_36 a ex:BudgetProject .
+
+ex:project_37 a ex:BudgetProject .
+
+ex:project_38 a ex:BudgetProject .
+
+ex:project_39 a ex:BudgetProject .
+
+ex:project_4 a ex:BudgetProject .
+
+ex:project_40 a ex:BudgetProject .
+
+ex:project_5 a ex:BudgetProject .
+
+ex:project_6 a ex:BudgetProject .
+
+ex:project_7 a ex:BudgetProject .
+
+ex:project_8 a ex:BudgetProject .
+
+ex:project_9 a ex:BudgetProject .
+
